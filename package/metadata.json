@@ -17,5 +17,6 @@
         "Version": "1.0.0",
         "Website": "https://github.com/surya54p/plasma6-docker-stacks-plasmoid"
     },
-    "X-Plasma-API-Minimum-Version": "6.0"
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-MainScript": "ui/main.qml"
 }
