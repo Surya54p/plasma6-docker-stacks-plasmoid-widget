@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasmoid
 import org.kde.plasma.plasma5support as P5Support
+import org.kde.plasma.workspace.components as PlasmaComponents
 
 PlasmoidItem {
     id: root
@@ -59,7 +60,6 @@ PlasmoidItem {
             var stderr = data["stderr"] || ""
 
             if (source.indexOf("docker compose ls --all --format json") !== -1) {
-                root.isLoading = false
                 if (exitCode === 0) {
                     try {
                         var raw = JSON.parse(stdout.trim())
@@ -87,15 +87,49 @@ PlasmoidItem {
                                 total_containers: total,
                                 running_containers: running,
                                 raw_status: rawStatus,
-                                config_files: item.ConfigFiles || ""
+                                config_files: item.ConfigFiles || "",
+                                frontend_url: null
                             })
                         }
                         root.stacksList = parsed
+                        // Fetch active frontend ports via docker ps
+                        runExec("docker ps --format '{{.Names}}\t{{.Ports}}'")
                     } catch (e) {
+                        root.isLoading = false
                         root.lastError = "Invalid output format"
                     }
                 } else {
+                    root.isLoading = false
                     root.lastError = stderr.trim() || "Failed to execute docker compose"
+                }
+            } else if (source.indexOf("docker ps --format '{{.Names}}\t{{.Ports}}'") !== -1) {
+                root.isLoading = false
+                if (exitCode === 0 && stdout.trim().length > 0) {
+                    var lines = stdout.trim().split("\n")
+                    var updatedStacks = JSON.parse(JSON.stringify(root.stacksList))
+                    for (var j = 0; j < lines.length; j++) {
+                        var parts = lines[j].split("\t")
+                        if (parts.length >= 2) {
+                            var cName = parts[0].toLowerCase()
+                            var cPorts = parts[1]
+                            // HANYA ambil container yang ada kata 'frontend'
+                            if (cName.indexOf("frontend") !== -1) {
+                                var portMatch = cPorts.match(/(\d+)->/)
+                                if (portMatch) {
+                                    var hostPort = portMatch[1]
+                                    // Match ke stack yang namanya ada di nama container
+                                    for (var k = 0; k < updatedStacks.length; k++) {
+                                        var stkName = updatedStacks[k].name.toLowerCase()
+                                        if (cName.indexOf(stkName) !== -1 || stkName.indexOf(cName.replace("-frontend", "").replace("_frontend", "")) !== -1) {
+                                            updatedStacks[k].frontend_url = "http://localhost:" + hostPort
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    root.stacksList = updatedStacks
                 }
             } else if (source.indexOf("logs --tail") !== -1) {
                 root.isLoadingLogs = false
@@ -119,6 +153,11 @@ PlasmoidItem {
 
     function runExec(cmd) {
         cmdRunner.connectSource(cmd)
+    }
+
+    function openUrl(url) {
+        if (!url) return
+        runExec("xdg-open \"" + url + "\"")
     }
 
     function fetchStacks() {
@@ -542,6 +581,30 @@ PlasmoidItem {
                                                         }
                                                         font.pixelSize: 10
                                                         color: Kirigami.Theme.disabledTextColor
+                                                    }
+                                                }
+
+                                                // View Frontend Web Button (Eye Icon)
+                                                Rectangle {
+                                                    Layout.preferredWidth: 28
+                                                    Layout.preferredHeight: 28
+                                                    radius: 4
+                                                    visible: !!modelData.frontend_url
+                                                    color: Qt.rgba(0.06, 0.72, 0.51, 0.15)
+                                                    border.color: "#10b981"
+                                                    border.width: 1
+
+                                                    Kirigami.Icon {
+                                                        anchors.centerIn: parent
+                                                        source: "view-visible"
+                                                        width: 14
+                                                        height: 14
+                                                    }
+
+                                                    MouseArea {
+                                                        anchors.fill: parent
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: root.openUrl(modelData.frontend_url)
                                                     }
                                                 }
 
