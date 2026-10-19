@@ -1,0 +1,21 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Surya",
+                "Email": "suryaarioprrama@gmail.com"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "Standalone Docker Compose Stacks Controller widget for KDE Plasma 6",
+        "EnabledByDefault": true,
+        "Icon": "docker",
+        "Id": "org.surya.docker.stacks",
+        "License": "MIT",
+        "Name": "Docker Stacks Controller",
+        "Version": "1.0.0",
+        "Website": "https://github.com/surya54p/plasma6-docker-stacks-plasmoid"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
