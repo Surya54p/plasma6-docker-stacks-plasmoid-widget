@@ -92,16 +92,16 @@ PlasmoidItem {
                         }
                         root.stacksList = parsed
                     } catch (e) {
-                        root.lastError = "Format output tidak valid"
+                        root.lastError = "Invalid output format"
                     }
                 } else {
-                    root.lastError = stderr.trim() || "Gagal menjalankan docker compose"
+                    root.lastError = stderr.trim() || "Failed to execute docker compose"
                 }
             } else if (source.indexOf("logs --tail") !== -1) {
                 root.isLoadingLogs = false
-                root.logContent = stdout || stderr || "Tidak ada log."
+                root.logContent = stdout || stderr || "No logs available."
             } else {
-                // Command start / stop / restart selesai
+                // Command start / stop / restart finished
                 var match = source.match(/docker compose -p\s+([^\s]+)\s+([^\s]+)/)
                 if (match) {
                     var sName = match[1]
@@ -109,7 +109,7 @@ PlasmoidItem {
                     delete updated[sName]
                     root.actionLoadingMap = updated
                 }
-                // Refresh list stacks
+                // Refresh stacks list
                 root.fetchStacks()
             }
 
@@ -140,7 +140,7 @@ PlasmoidItem {
     function viewStackLogs(stackName) {
         root.activeLogStack = stackName
         root.isLoadingLogs = true
-        root.logContent = "Mengambil log dari stack " + stackName + "..."
+        root.logContent = "Fetching logs for stack " + stackName + "..."
         var cmd = "docker compose -p " + stackName + " logs --tail 200"
         runExec(cmd)
     }
@@ -224,16 +224,16 @@ PlasmoidItem {
                         }
 
                         Text {
-                            text: root.activeLogStack ? "Tekan tombol kembali untuk melihat semua stack" : (root.isLoading ? "Memperbarui status..." : (root.lastError ? root.lastError : (root.stacksList.length + " Compose Stacks Terdeteksi")))
+                            text: root.activeLogStack ? "Press Back button to view all stacks" : (root.isLoading ? "Refreshing status..." : (root.lastError ? root.lastError : (root.stacksList.length + " Compose Stacks Detected")))
                             font.pixelSize: 10
                             color: root.lastError ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.disabledTextColor
                         }
                     }
 
-                    // Tombol Kembali dari mode Log
+                    // Back button from Logs view
                     QQC2.Button {
                         visible: !!root.activeLogStack
-                        text: "Kembali"
+                        text: "Back"
                         onClicked: root.activeLogStack = ""
                     }
 
@@ -338,7 +338,7 @@ PlasmoidItem {
                                     QQC2.TextField {
                                         id: searchInput
                                         Layout.fillWidth: true
-                                        placeholderText: "Cari nama stack..."
+                                        placeholderText: "Search stack name..."
                                         color: Kirigami.Theme.textColor
                                         font.pixelSize: 11
                                         background: null
@@ -363,7 +363,7 @@ PlasmoidItem {
                                 }
                             }
 
-                            // Filter Tabs: Aktif (Default) / Semua / Berhenti
+                            // Filter Tabs: Active (Default) / All / Stopped
                             RowLayout {
                                 spacing: 4
 
@@ -378,7 +378,7 @@ PlasmoidItem {
                                     Text {
                                         id: activeTabText
                                         anchors.centerIn: parent
-                                        text: "Aktif"
+                                        text: "Active"
                                         font.pixelSize: 11
                                         font.bold: root.statusFilter === "active"
                                         color: root.statusFilter === "active" ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
@@ -402,7 +402,7 @@ PlasmoidItem {
                                     Text {
                                         id: allTabText
                                         anchors.centerIn: parent
-                                        text: "Semua"
+                                        text: "All"
                                         font.pixelSize: 11
                                         font.bold: root.statusFilter === "all"
                                         color: root.statusFilter === "all" ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
@@ -426,7 +426,7 @@ PlasmoidItem {
                                     Text {
                                         id: exitedTabText
                                         anchors.centerIn: parent
-                                        text: "Berhenti"
+                                        text: "Stopped"
                                         font.pixelSize: 11
                                         font.bold: root.statusFilter === "exited"
                                         color: root.statusFilter === "exited" ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
@@ -533,8 +533,8 @@ PlasmoidItem {
                                                     Text {
                                                         text: {
                                                             var act = root.actionLoadingMap[modelData.name]
-                                                            if (act === "start") return "Memulai..."
-                                                            if (act === "stop") return "Mematikan..."
+                                                            if (act === "start") return "Starting..."
+                                                            if (act === "stop") return "Stopping..."
                                                             if (act === "restart") return "Restarting..."
                                                             return "Loading..."
                                                         }
@@ -648,7 +648,7 @@ PlasmoidItem {
                             Text {
                                 anchors.centerIn: parent
                                 visible: root.getFilteredStacks().length === 0 && !root.isLoading
-                                text: root.searchQuery ? "Tidak ada stack yang cocok dengan pencarian" : "Tidak ada stack aktif saat ini"
+                                text: root.searchQuery ? "No stacks matching your search" : "No active stacks currently running"
                                 color: Kirigami.Theme.disabledTextColor
                                 font.pixelSize: 12
                             }
