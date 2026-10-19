@@ -6,6 +6,10 @@ A fast, lightweight, and standalone panel widget for **KDE Plasma 6** to monitor
 ![Docker Compose](https://img.shields.io/badge/Docker-Compose_v2-2496ED.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
+<p align="center">
+  <img src="assets/preview.png" alt="Docker Stacks Controller Preview" width="480">
+</p>
+
 ---
 
 ## ✨ Features
@@ -31,8 +35,8 @@ A fast, lightweight, and standalone panel widget for **KDE Plasma 6** to monitor
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/surya54p/plasma6-docker-stacks-plasmoid.git
-cd plasma6-docker-stacks-plasmoid
+git clone https://github.com/Surya54p/plasma6-docker-stacks-plasmoid-widget.git
+cd plasma6-docker-stacks-plasmoid-widget
 ```
 
 ### 2. Install the Plasmoid
