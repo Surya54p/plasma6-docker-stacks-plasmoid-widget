@@ -20,6 +20,9 @@ PlasmoidItem {
     property string logContent: ""
     property bool isLoadingLogs: false
 
+    // Action Loading State per Stack (contoh: {"simpeg": "start", "predika": "stop"})
+    property var actionLoadingMap: ({})
+
     // Filter & Search State
     property string searchQuery: ""
     property string statusFilter: "active" // Default: hanya yang aktif ("active", "all", "exited")
@@ -98,7 +101,15 @@ PlasmoidItem {
                 root.isLoadingLogs = false
                 root.logContent = stdout || stderr || "Tidak ada log."
             } else {
-                // Selesai aksi start/stop/restart -> Refresh list
+                // Command start / stop / restart selesai
+                var match = source.match(/docker compose -p\s+([^\s]+)\s+([^\s]+)/)
+                if (match) {
+                    var sName = match[1]
+                    var updated = Object.assign({}, root.actionLoadingMap)
+                    delete updated[sName]
+                    root.actionLoadingMap = updated
+                }
+                // Refresh list stacks
                 root.fetchStacks()
             }
 
@@ -118,6 +129,10 @@ PlasmoidItem {
 
     function triggerStackAction(stackName, action) {
         // action: start | stop | restart
+        var updated = Object.assign({}, root.actionLoadingMap)
+        updated[stackName] = action
+        root.actionLoadingMap = updated
+
         var cmd = "docker compose -p " + stackName + " " + action
         runExec(cmd)
     }
@@ -504,26 +519,50 @@ PlasmoidItem {
                                                     Layout.fillWidth: true // Spacer untuk push semua tombol ke kanan (justify-end)
                                                 }
 
+                                                // Loading Indicator / Status Text saat aksi berlangsung
+                                                RowLayout {
+                                                    visible: !!root.actionLoadingMap[modelData.name]
+                                                    spacing: 4
+
+                                                    QQC2.BusyIndicator {
+                                                        Layout.preferredWidth: 18
+                                                        Layout.preferredHeight: 18
+                                                        running: !!root.actionLoadingMap[modelData.name]
+                                                    }
+
+                                                    Text {
+                                                        text: {
+                                                            var act = root.actionLoadingMap[modelData.name]
+                                                            if (act === "start") return "Memulai..."
+                                                            if (act === "stop") return "Mematikan..."
+                                                            if (act === "restart") return "Restarting..."
+                                                            return "Loading..."
+                                                        }
+                                                        font.pixelSize: 10
+                                                        color: Kirigami.Theme.disabledTextColor
+                                                    }
+                                                }
+
                                                 // Start Button
                                                 Rectangle {
                                                     Layout.preferredWidth: 28
                                                     Layout.preferredHeight: 28
                                                     radius: 4
-                                                    color: modelData.status === "running" ? Qt.rgba(0.1, 0.15, 0.25, 0.3) : Qt.rgba(0.06, 0.72, 0.51, 0.2)
-                                                    border.color: modelData.status === "running" ? "transparent" : "#10b981"
+                                                    color: (modelData.status === "running" || !!root.actionLoadingMap[modelData.name]) ? Qt.rgba(0.1, 0.15, 0.25, 0.3) : Qt.rgba(0.06, 0.72, 0.51, 0.2)
+                                                    border.color: (modelData.status === "running" || !!root.actionLoadingMap[modelData.name]) ? "transparent" : "#10b981"
                                                     border.width: 1
 
                                                     Text {
                                                         anchors.centerIn: parent
                                                         text: "▶"
                                                         font.pixelSize: 11
-                                                        color: modelData.status === "running" ? Kirigami.Theme.disabledTextColor : "#10b981"
+                                                        color: (modelData.status === "running" || !!root.actionLoadingMap[modelData.name]) ? Kirigami.Theme.disabledTextColor : "#10b981"
                                                     }
 
                                                     MouseArea {
                                                         anchors.fill: parent
                                                         cursorShape: Qt.PointingHandCursor
-                                                        enabled: modelData.status !== "running"
+                                                        enabled: modelData.status !== "running" && !root.actionLoadingMap[modelData.name]
                                                         onClicked: root.triggerStackAction(modelData.name, "start")
                                                     }
                                                 }
@@ -533,21 +572,21 @@ PlasmoidItem {
                                                     Layout.preferredWidth: 28
                                                     Layout.preferredHeight: 28
                                                     radius: 4
-                                                    color: modelData.running_containers === 0 ? Qt.rgba(0.1, 0.15, 0.25, 0.3) : Qt.rgba(0.95, 0.25, 0.37, 0.2)
-                                                    border.color: modelData.running_containers === 0 ? "transparent" : "#f43f5e"
+                                                    color: (modelData.running_containers === 0 || !!root.actionLoadingMap[modelData.name]) ? Qt.rgba(0.1, 0.15, 0.25, 0.3) : Qt.rgba(0.95, 0.25, 0.37, 0.2)
+                                                    border.color: (modelData.running_containers === 0 || !!root.actionLoadingMap[modelData.name]) ? "transparent" : "#f43f5e"
                                                     border.width: 1
 
                                                     Text {
                                                         anchors.centerIn: parent
                                                         text: "■"
                                                         font.pixelSize: 11
-                                                        color: modelData.running_containers === 0 ? Kirigami.Theme.disabledTextColor : "#f43f5e"
+                                                        color: (modelData.running_containers === 0 || !!root.actionLoadingMap[modelData.name]) ? Kirigami.Theme.disabledTextColor : "#f43f5e"
                                                     }
 
                                                     MouseArea {
                                                         anchors.fill: parent
                                                         cursorShape: Qt.PointingHandCursor
-                                                        enabled: modelData.running_containers > 0
+                                                        enabled: modelData.running_containers > 0 && !root.actionLoadingMap[modelData.name]
                                                         onClicked: root.triggerStackAction(modelData.name, "stop")
                                                     }
                                                 }
@@ -557,8 +596,8 @@ PlasmoidItem {
                                                     Layout.preferredWidth: 28
                                                     Layout.preferredHeight: 28
                                                     radius: 4
-                                                    color: Qt.rgba(0.96, 0.62, 0.04, 0.2)
-                                                    border.color: "#f59e0b"
+                                                    color: !!root.actionLoadingMap[modelData.name] ? Qt.rgba(0.1, 0.15, 0.25, 0.3) : Qt.rgba(0.96, 0.62, 0.04, 0.2)
+                                                    border.color: !!root.actionLoadingMap[modelData.name] ? "transparent" : "#f59e0b"
                                                     border.width: 1
 
                                                     Text {
@@ -566,12 +605,13 @@ PlasmoidItem {
                                                         text: "⟳"
                                                         font.pixelSize: 13
                                                         font.bold: true
-                                                        color: "#f59e0b"
+                                                        color: !!root.actionLoadingMap[modelData.name] ? Kirigami.Theme.disabledTextColor : "#f59e0b"
                                                     }
 
                                                     MouseArea {
                                                         anchors.fill: parent
                                                         cursorShape: Qt.PointingHandCursor
+                                                        enabled: !root.actionLoadingMap[modelData.name]
                                                         onClicked: root.triggerStackAction(modelData.name, "restart")
                                                     }
                                                 }
