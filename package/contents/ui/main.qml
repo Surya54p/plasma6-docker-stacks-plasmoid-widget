@@ -184,15 +184,19 @@ PlasmoidItem {
         runExec(cmd)
     }
 
+    // Polling hanya aktif saat widget dibuka (expanded == true)
     Timer {
-        interval: 15000 // Polling otomatis tiap 15 detik
-        running: true
+        interval: 15000
+        running: root.expanded
         repeat: true
         onTriggered: root.fetchStacks()
     }
 
-    Component.onCompleted: {
-        root.fetchStacks()
+    onExpandedChanged: {
+        if (root.expanded) {
+            root.activeLogStack = ""
+            root.fetchStacks()
+        }
     }
 
     // --- Compact Representation (Tampilan di Taskbar/Panel: Icon Only) ---
