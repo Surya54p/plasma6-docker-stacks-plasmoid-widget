@@ -238,7 +238,7 @@ PlasmoidItem {
                     }
 
                     QQC2.Button {
-                        text: "🔄"
+                        icon.name: "view-refresh"
                         flat: true
                         Layout.preferredWidth: 28
                         Layout.preferredHeight: 28
@@ -329,9 +329,10 @@ PlasmoidItem {
                                     anchors.rightMargin: 8
                                     spacing: 4
 
-                                    Text {
-                                        text: "🔍"
-                                        font.pixelSize: 11
+                                    Kirigami.Icon {
+                                        source: "edit-find"
+                                        Layout.preferredWidth: 14
+                                        Layout.preferredHeight: 14
                                         opacity: 0.7
                                     }
 
@@ -346,10 +347,11 @@ PlasmoidItem {
                                         onTextChanged: root.searchQuery = text
                                     }
 
-                                    Text {
-                                        text: "✕"
-                                        font.pixelSize: 10
-                                        color: Kirigami.Theme.disabledTextColor
+                                    Kirigami.Icon {
+                                        source: "edit-clear"
+                                        Layout.preferredWidth: 14
+                                        Layout.preferredHeight: 14
+                                        opacity: 0.7
                                         visible: searchInput.text.length > 0
                                         MouseArea {
                                             anchors.fill: parent
@@ -552,11 +554,12 @@ PlasmoidItem {
                                                     border.color: (modelData.status === "running" || !!root.actionLoadingMap[modelData.name]) ? "transparent" : "#10b981"
                                                     border.width: 1
 
-                                                    Text {
+                                                    Kirigami.Icon {
                                                         anchors.centerIn: parent
-                                                        text: "▶"
-                                                        font.pixelSize: 11
-                                                        color: (modelData.status === "running" || !!root.actionLoadingMap[modelData.name]) ? Kirigami.Theme.disabledTextColor : "#10b981"
+                                                        source: "media-playback-start"
+                                                        width: 14
+                                                        height: 14
+                                                        opacity: (modelData.status === "running" || !!root.actionLoadingMap[modelData.name]) ? 0.35 : 1.0
                                                     }
 
                                                     MouseArea {
@@ -576,11 +579,12 @@ PlasmoidItem {
                                                     border.color: (modelData.running_containers === 0 || !!root.actionLoadingMap[modelData.name]) ? "transparent" : "#f43f5e"
                                                     border.width: 1
 
-                                                    Text {
+                                                    Kirigami.Icon {
                                                         anchors.centerIn: parent
-                                                        text: "■"
-                                                        font.pixelSize: 11
-                                                        color: (modelData.running_containers === 0 || !!root.actionLoadingMap[modelData.name]) ? Kirigami.Theme.disabledTextColor : "#f43f5e"
+                                                        source: "media-playback-stop"
+                                                        width: 14
+                                                        height: 14
+                                                        opacity: (modelData.running_containers === 0 || !!root.actionLoadingMap[modelData.name]) ? 0.35 : 1.0
                                                     }
 
                                                     MouseArea {
@@ -600,12 +604,12 @@ PlasmoidItem {
                                                     border.color: !!root.actionLoadingMap[modelData.name] ? "transparent" : "#f59e0b"
                                                     border.width: 1
 
-                                                    Text {
+                                                    Kirigami.Icon {
                                                         anchors.centerIn: parent
-                                                        text: "⟳"
-                                                        font.pixelSize: 13
-                                                        font.bold: true
-                                                        color: !!root.actionLoadingMap[modelData.name] ? Kirigami.Theme.disabledTextColor : "#f59e0b"
+                                                        source: "view-refresh"
+                                                        width: 14
+                                                        height: 14
+                                                        opacity: !!root.actionLoadingMap[modelData.name] ? 0.35 : 1.0
                                                     }
 
                                                     MouseArea {
@@ -625,11 +629,11 @@ PlasmoidItem {
                                                     border.color: Qt.rgba(0.4, 0.45, 0.55, 0.4)
                                                     border.width: 1
 
-                                                    Text {
+                                                    Kirigami.Icon {
                                                         anchors.centerIn: parent
-                                                        text: "📄"
-                                                        font.pixelSize: 11
-                                                        color: Kirigami.Theme.textColor
+                                                        source: "text-x-log"
+                                                        width: 14
+                                                        height: 14
                                                     }
 
                                                     MouseArea {
